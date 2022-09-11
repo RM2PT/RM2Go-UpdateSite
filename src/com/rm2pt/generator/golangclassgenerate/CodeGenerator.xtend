@@ -13,20 +13,21 @@ import java.util.ArrayList
 import net.mydreamy.requirementmodel.rEMODEL.Contract
 import net.mydreamy.requirementmodel.rEMODEL.Service
 import java.util.HashMap
+import com.rm2pt.generator.golangclassgenerate.serviceGen.ServiceGenerator
 
 class CodeGenerator extends AbstractGenerator {
 
 	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
 		System.out.println("hello, goen!!!");
 		var entities = new ArrayList<Entity>();
-		// 这个Iterable本身不知道为什么只能遍历一次（调用一次for），所以将里面的元素进行转移
+//		 这个Iterable本身不知道为什么只能遍历一次（调用一次for），所以将里面的元素进行转移
 		var ite = resource.allContents.toIterable.filter(typeof(Entity));
 		for(e : ite){
 			System.out.println(e);
 			entities.add(e);
 		}
 		
-//		System.out.println("hello, goen!!!");
+		System.out.println("hello, goen!!!");
 //		var zEntities = ZEntityFactory.generateZEntities(entities);
 ////		
 //		fsa.generateFile("Auto/sql/schema.sql", SQLGenerator.generate(zEntities));
@@ -39,7 +40,8 @@ class CodeGenerator extends AbstractGenerator {
 	 		contractMap.put(contract.op.name, contract);
 		}
 		for(service : resource.allContents.toIterable.filter(typeof(Service))){
-	 		fsa.generateFile("Auto/serviceGen/" + service.name + ".go", ServiceGenerator.generate(service, contractMap));	
+			var serviceGen = new ServiceGenerator(service, contractMap)
+	 		fsa.generateFile("Auto/serviceGen/" + service.name + ".go", serviceGen.generate());	
 		}
 		
 		

@@ -28,7 +28,7 @@ class Tool {
 		name.toLowerCase().substring(0,1) + name.substring(1)
 	}
 	
-	static def compileGoTypeName(TypeCS type) 
+	static def compileGoTypeName(TypeCS type)
 	{
 		
 		if (type !== null)
