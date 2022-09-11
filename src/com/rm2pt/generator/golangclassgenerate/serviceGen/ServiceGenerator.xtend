@@ -23,7 +23,7 @@ class ServiceGenerator {
 		
 		// 先分析得到该Service的tempproperty的map
 		for(tp : service.temp_property){
-			tempPropertyMap.put(tp.name, tp.type);
+			tempProperties.add(tp.name, tp.type);
 		}
 		
 		for(op : service.operation){
@@ -35,10 +35,10 @@ class ServiceGenerator {
 		return service.name;
 	}
 	def getTempProperties(){
-		return tempPropertyMap;
+		return tempProperties;
 	}
 	
-	Map<String, TypeCS> tempPropertyMap = new HashMap<String, TypeCS>();
+	VariableDomain tempProperties = new VariableDomain();
 	
 	def generate(){
 		if(service.name.matches(".*System")){
