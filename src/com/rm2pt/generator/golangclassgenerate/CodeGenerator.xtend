@@ -10,6 +10,9 @@ import org.eclipse.xtext.generator.AbstractGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
 import java.util.ArrayList
+import net.mydreamy.requirementmodel.rEMODEL.Contract
+import net.mydreamy.requirementmodel.rEMODEL.Service
+import java.util.HashMap
 
 class CodeGenerator extends AbstractGenerator {
 
@@ -22,16 +25,23 @@ class CodeGenerator extends AbstractGenerator {
 			System.out.println(e);
 			entities.add(e);
 		}
-		System.out.println("hello, goen!!!");
+		
+//		System.out.println("hello, goen!!!");
 //		var zEntities = ZEntityFactory.generateZEntities(entities);
-//		
+////		
 //		fsa.generateFile("Auto/sql/schema.sql", SQLGenerator.generate(zEntities));
 //		for(e : zEntities){
 //			fsa.generateFile("Auto/entity/" + e.entityName.initialLow + ".go", EntityGenerator.generate(e));
 //		}
 //		fsa.generateFile("Auto/entity/init.go", EntityGenerator.generateInit(zEntities))
+		var contractMap = new HashMap<String, Contract>();
+		for(contract : resource.allContents.toIterable.filter(typeof(Contract))){
+	 		contractMap.put(contract.op.name, contract);
+		}
+		for(service : resource.allContents.toIterable.filter(typeof(Service))){
+	 		fsa.generateFile("Auto/serviceGen/" + service.name + ".go", ServiceGenerator.generate(service, contractMap));	
+		}
 		
-		ContractGenerator.generate(resource);
 		
 		
 	}

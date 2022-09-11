@@ -126,7 +126,7 @@ class Tool {
 				case  "Real" : "float64"
 				case  "Integer" : "int"
 				case  "Date" : "time.Time"
-				default: ""
+				default: typeName
 		}			
 	}
 	static def compileGoImport(String typeName) 

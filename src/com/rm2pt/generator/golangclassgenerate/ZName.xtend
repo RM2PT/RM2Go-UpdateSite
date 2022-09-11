@@ -140,7 +140,7 @@ class ZEntityFactory{
 //			System.out.print("e.superEntity :");
 //			System.out.println(e);
 			if(e.superEntity !== null){
-				System.out.println("我进来楼");
+//				System.out.println("我进来楼");
 				zEntities.get(e.superEntity.name).isBaseEntity = true;
 				zEntities.get(e.name).parentEntity = new ZName(e.superEntity.name);
 			}

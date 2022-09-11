@@ -45,13 +45,13 @@ class EntityGenerator {
 		package entity
 		
 		import (
-			"Auto/entityManager"
+			"Auto/entityRepo"
 			"log"
 		)
 		
 		«IF inheritConsts.length() != 0»
 		const (
-			«inheritConsts.get(0)» entityManager.GoenInheritType = iota + 1
+			«inheritConsts.get(0)» entityRepo.GoenInheritType = iota + 1
 			«FOR inheritConst : inheritConsts.subList(1, inheritConsts.length())»
 			«inheritConst»
 			«ENDFOR»
@@ -61,15 +61,15 @@ class EntityGenerator {
 		func init() {
 			«FOR e : sortedEntities»
 			«IF e.parentEntity === null»
-			tmp«e.entityName.originName»Manager, err := entityManager.NewManager[«e.entityName.originName»Entity, «e.entityName.originName»]("«e.entityName.underline»")			
+			tmp«e.entityName.originName»Repo, err := entityRepo.NewRepo[«e.entityName.originName»Entity, «e.entityName.originName»]("«e.entityName.underline»")			
 			«ELSE»
-			tmp«e.entityName.originName»Manager, err := entityManager.NewInheritManager[«e.entityName.originName»Entity, «e.entityName.originName»]("«e.entityName.underline»", tmp«e.parentEntity.originName»Manager, «e.entityName.originName»InheritType)			
+			tmp«e.entityName.originName»Repo, err := entityRepo.NewInheritRepo[«e.entityName.originName»Entity, «e.entityName.originName»]("«e.entityName.underline»", tmp«e.parentEntity.originName»Repo, «e.entityName.originName»InheritType)			
 			«ENDIF»
 			if err != nil {
 				log.Fatal(err)
 			}
-			«e.entityName.initialLow»Manager = tmp«e.entityName.originName»Manager
-			«e.entityName.originName»Manager = tmp«e.entityName.originName»Manager
+			«e.entityName.initialLow»Repo = tmp«e.entityName.originName»Repo
+			«e.entityName.originName»Repo = tmp«e.entityName.originName»Repo
 			«ENDFOR»
 			
 		}
@@ -81,7 +81,7 @@ class EntityGenerator {
 		package entity
 		
 		«generateImport(entity)»
-		«generateManagers(entity)»
+		«generateRepos(entity)»
 		«generateEnum(entity)»
 		«generateInterface(entity)»
 		«generateStruct(entity)»
@@ -103,7 +103,7 @@ class EntityGenerator {
 		return
 		'''
 		import(
-		"Auto/entityManager"
+		"Auto/entityRepo"
 		«FOR i : imports»
 		«i»
 		«ENDFOR»
@@ -111,13 +111,13 @@ class EntityGenerator {
 		
 		'''
 	}
-	static def generateManagers(ZEntity e) {
+	static def generateRepos(ZEntity e) {
 		'''
-		var «e.entityName.initialLow»Manager entityManager.ManagerForEntity[«e.entityName.originName»]
+		var «e.entityName.initialLow»Repo entityRepo.RepoForEntity[«e.entityName.originName»]
 		«IF e.isBaseEntity || e.parentEntity !== null»
-		var «e.entityName.originName»Manager entityManager.InheritManagerForOther[«e.entityName.originName»]
+		var «e.entityName.originName»Repo entityRepo.InheritRepoForOther[«e.entityName.originName»]
 		«ELSE»
-		var «e.entityName.originName»Manager entityManager.ManagerForOther[«e.entityName.originName»]
+		var «e.entityName.originName»Repo entityRepo.RepoForOther[«e.entityName.originName»]
 		«ENDIF»
 		
 		'''
@@ -169,14 +169,17 @@ class EntityGenerator {
 			if p.«a.field.originName» == nil {
 				return nil
 			} else {
-				ret, _ := «a.targetEntity.initialLow»Manager.Get(*p.«a.field.originName»)
+				ret, err := «a.targetEntity.initialLow»Repo.Get(*p.«a.field.originName»)
+				if err != nil {
+					panic(err)
+				}
 				return ret
 			}''')
 		}
 		for(a : e.multiAsses){
 			strList.add(
 			'''
-			ret, _ := «a.targetEntity.initialLow»Manager.FindFromMultiAssTable("«a.tableName»", p.GoenId)
+			ret, _ := «a.targetEntity.initialLow»Repo.FindFromMultiAssTable("«a.tableName»", p.GoenId)
 			return ret ''')
 		}
 		return strList;
@@ -197,14 +200,14 @@ class EntityGenerator {
 		for(a : e.singleAsses){
 			strList.add(
 			'''
-			id := «a.targetEntity.initialLow»Manager.GetGoenId(«a.targetEntity.initialLow»)
+			id := «a.targetEntity.initialLow»Repo.GetGoenId(«a.targetEntity.initialLow»)
 			p.«a.field.originName» = &id
 			p.AddAssFieldChange("«a.field.underline»")''')
 		}
 		for(a : e.multiAsses){
 			strList.add(
 			'''
-			p.AddMultiAssChange(entityManager.Include, "«a.tableName»", «a.targetEntity.initialLow»Manager.GetGoenId(«a.targetEntity.initialLow»))''')
+			p.AddMultiAssChange(entityRepo.Include, "«a.tableName»", «a.targetEntity.initialLow»Repo.GetGoenId(«a.targetEntity.initialLow»))''')
 		}
 		return strList;
 	}
@@ -245,12 +248,12 @@ class EntityGenerator {
 		'''
 		type «e.entityName.originName»Entity struct{
 			«IF e.isBaseEntity == false && e.parentEntity === null»
-			entityManager.Entity
+			entityRepo.Entity
 			«ELSEIF e.parentEntity !== null»
 			«e.parentEntity.originName»Entity
-			entityManager.FieldChange
+			entityRepo.FieldChange
 			«ELSEIF e.isBaseEntity == true»
-			entityManager.BasicEntity
+			entityRepo.BasicEntity
 			«ENDIF»
 			
 			«FOR a : e.basicFields»
@@ -272,7 +275,7 @@ class EntityGenerator {
 	static def generateOtherImplements(ZEntity e) {
 		'''
 		«IF e.parentEntity !== null»
-		«generateFuncPrefix(e)» GetParentEntity() entityManager.EntityForInheritManager {
+		«generateFuncPrefix(e)» GetParentEntity() entityRepo.EntityForInheritRepo {
 			return &p.«e.parentEntity.originName»Entity
 		}
 		
