@@ -39,6 +39,8 @@ import net.mydreamy.requirementmodel.rEMODEL.Attribute
 import net.mydreamy.requirementmodel.rEMODEL.Service
 import net.mydreamy.requirementmodel.rEMODEL.OCLExpressionCS
 import com.rm2pt.generator.golangclassgenerate.Tool
+import net.mydreamy.requirementmodel.rEMODEL.EnumLiteralExpCS
+import net.mydreamy.requirementmodel.rEMODEL.OperationCallExpCS
 
 class ContractGenerator {
 	Contract contract;
@@ -258,12 +260,28 @@ class ContractGenerator {
 			VariableExpCS : generateValue(exp.symbol)
 			PropertyCallExpCS : '''«generateValue(exp.name)».Get«exp.attribute»()'''
 			PrimitiveLiteralExpCS : exp.symbol
+			EnumLiteralExpCS: "entity." + exp.enumname + exp.eunmitem
 			StandardOperationExpCS :{
 				switch(exp.predefinedop.name){
 					case "oclIsUndefined()" : '''(«generateValue(exp.object)» == nil)'''
 					case "sum()" : '''util.Sum(«generateValue(exp.object)»)'''
 					default : "goenUndefined!"
 				}
+			}
+			StandardNavigationCallExpCS : {
+				if(exp.propertycall === null && exp.classifercall !== null && exp.classifercall.op == "allInstance()"){
+					var classifer = exp.classifercall
+					switch(exp.standardOP.name){
+						case "includes": 
+							"entity." + classifer.entity + "Repo.IsInAllInstance" + "(" + exp.standardOP.object +")"
+						default : "goenUndefined!"
+					}
+				}else {
+					"goenUndefined!"
+				}
+			}
+			OperationCallExpCS: {
+				'''«exp.name»(«FOR param: exp.parameters»«generateValue(param.object)»«ENDFOR»)'''
 			}
 			IteratorExpCS: {
 				switch(exp.iterator){
@@ -276,6 +294,23 @@ class ContractGenerator {
 								AtomicExpression:
 									if(atomicexp.infixop == "=" && atomicexp.leftside instanceof PropertyCallExpCS){
 										'''«generateRepo(call.entity)».GetFromAllInstanceBy("«Tool.camelToUnderScore((atomicexp.leftside as PropertyCallExpCS).attribute)»", «generateValue(atomicexp.rightside)»)'''
+									}
+									
+								}
+							
+							}
+						}
+						default : "goenUndefined!"
+						}
+					case "select" : 
+						switch(call : exp.objectCall){
+						ClassiferCallExpCS: {
+							switch(subexp : exp.exp){
+							LogicFormulaExpCS: 
+								switch(atomicexp : subexp.atomicexp.get(0)){
+								AtomicExpression:
+									if(atomicexp.infixop == "=" && atomicexp.leftside instanceof PropertyCallExpCS){
+										'''«generateRepo(call.entity)».FindFromAllInstanceBy("«Tool.camelToUnderScore((atomicexp.leftside as PropertyCallExpCS).attribute)»", «generateValue(atomicexp.rightside)»)'''
 									}
 									
 								}

@@ -51,6 +51,8 @@ class ServiceGenerator {
 				"time"
 			)
 			
+			var «service.name»Instance «service.name»
+			
 			«FOR attr : service.temp_property»
 			var «attr.name»  entity.«Tool.compileGoTypeName(attr.type)»
 			«ENDFOR»
@@ -69,6 +71,7 @@ class ServiceGenerator {
 				"time"
 			)
 			
+			var «service.name»Instance «service.name»
 			
 			type «service.name» struct {
 				«FOR attr : service.temp_property»
