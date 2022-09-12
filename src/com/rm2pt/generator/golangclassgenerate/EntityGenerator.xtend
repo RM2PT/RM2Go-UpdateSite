@@ -208,6 +208,10 @@ class EntityGenerator {
 			strList.add(
 			'''
 			p.AddMultiAssChange(entityRepo.Include, "«a.tableName»", «a.targetEntity.initialLow»Repo.GetGoenId(«a.targetEntity.initialLow»))''')
+			strList.add(
+			'''
+			p.AddMultiAssChange(entityRepo.Exclude, "«a.tableName»", «a.targetEntity.initialLow»Repo.GetGoenId(«a.targetEntity.initialLow»))''')
+		
 		}
 		return strList;
 	}
@@ -224,6 +228,7 @@ class EntityGenerator {
 		}
 		for(a : e.multiAsses){
 			strList.add('''Add«a.originName» («a.targetEntity.initialLow» «a.targetEntity.originName») ''')
+			strList.add('''Remove«a.originName» («a.targetEntity.initialLow» «a.targetEntity.originName») ''')
 		}
 		return strList;
 	}

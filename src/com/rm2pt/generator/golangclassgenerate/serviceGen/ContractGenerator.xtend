@@ -198,7 +198,8 @@ class ContractGenerator {
 					switch(exp.standardOP.name){
 						case "includes": 
 							generateValue(property.name) + ".Add" + property.attribute + "(" + generateValue(exp.standardOP.object) +")"
-						case "excludes" : "goenUndefined!"
+						case "excludes" : 
+							generateValue(property.name) + ".Remove" + property.attribute + "(" + generateValue(exp.standardOP.object) +")"
 						default : "goenUndefined!"
 					}
 				}else if(exp.propertycall === null && exp.classifercall !== null && exp.classifercall.op == "allInstance()"){
@@ -206,7 +207,8 @@ class ContractGenerator {
 					switch(exp.standardOP.name){
 						case "includes": 
 							"entity." + classifer.entity + "Repo.AddInAllInstance" + "(" + exp.standardOP.object +")"
-						case "excludes" : "goenUndefined!"
+						case "excludes" : 
+							"entity." + classifer.entity + "Repo.RemoveFromAllInstance" + "(" + exp.standardOP.object +")"
 						default : "goenUndefined!"
 					}
 				}else {

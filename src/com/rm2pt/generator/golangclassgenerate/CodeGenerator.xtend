@@ -28,13 +28,13 @@ class CodeGenerator extends AbstractGenerator {
 		}
 		
 		System.out.println("hello, goen!!!");
-//		var zEntities = ZEntityFactory.generateZEntities(entities);
-////		
-//		fsa.generateFile("Auto/sql/schema.sql", SQLGenerator.generate(zEntities));
-//		for(e : zEntities){
-//			fsa.generateFile("Auto/entity/" + e.entityName.initialLow + ".go", EntityGenerator.generate(e));
-//		}
-//		fsa.generateFile("Auto/entity/init.go", EntityGenerator.generateInit(zEntities))
+		var zEntities = ZEntityFactory.generateZEntities(entities);
+		
+		fsa.generateFile("Auto/sql/schema.sql", SQLGenerator.generate(zEntities));
+		for(e : zEntities){
+			fsa.generateFile("Auto/entity/" + e.entityName.initialLow + ".go", EntityGenerator.generate(e));
+		}
+		fsa.generateFile("Auto/entity/init.go", EntityGenerator.generateInit(zEntities))
 		var contractMap = new HashMap<String, Contract>();
 		for(contract : resource.allContents.toIterable.filter(typeof(Contract))){
 	 		contractMap.put(contract.op.name, contract);
