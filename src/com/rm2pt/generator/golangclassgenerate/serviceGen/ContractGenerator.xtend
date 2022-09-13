@@ -46,9 +46,11 @@ class ContractGenerator {
 	Contract contract;
 	ServiceGenerator serviceGen;
 	VariableDomain variables;
-	new (Contract contract, ServiceGenerator service){
+	OperationDomain operationDomain;
+	new (Contract contract, ServiceGenerator service, OperationDomain operationDomain){
 		this.contract = contract;
 		serviceGen = service;
+		this.operationDomain = operationDomain;
 		variables = new VariableDomain();
 		if(contract.def !== null){
 			for(vari : contract.def.variable){
@@ -68,10 +70,10 @@ class ContractGenerator {
 	
 	def generate(){
 		'''
-		func (p *«serviceGen.name») «name» («FOR para : contract.op.parameter SEPARATOR ','»«para.name» «generateType(para.type)» «ENDFOR») (result «generateType(contract.op.returnType)», retErr error){
+		func (p *«serviceGen.name») «name» («FOR para : contract.op.parameter SEPARATOR ','»«para.name» «generateType(para.type)» «ENDFOR») (ret OperationResult[«generateType(contract.op.returnType)»]){
 			defer func() {
 				if err := entityRepo.Saver.Save(); err != nil {
-					retErr = NewErrPostCondition(err)
+					ret.Err = NewErrPostCondition(err)
 					return
 				}
 			}()
@@ -109,7 +111,7 @@ class ContractGenerator {
 		// precondition
 		if!(
 			«generateValue(contract.pre.oclexp)»){
-			retErr = ErrPreConditionUnsatisfied
+			ret.Err = ErrPreConditionUnsatisfied
 			return
 		}
 		'''
@@ -281,7 +283,7 @@ class ContractGenerator {
 				}
 			}
 			OperationCallExpCS: {
-				'''«exp.name»(«FOR param: exp.parameters»«generateValue(param.object)»«ENDFOR»)'''
+				'''«operationDomain.findService(exp.name)»Instance.«exp.name»(«FOR param: exp.parameters SEPARATOR ','»«generateValue(param.object)»«ENDFOR»).Value'''
 			}
 			IteratorExpCS: {
 				switch(exp.iterator){
@@ -345,6 +347,7 @@ class ContractGenerator {
 	def String generateValue(String symbol){
 		switch(symbol){
 			case "self" : ""
+			case "result" : "ret.Value"
 			case "Now" : "time.Now()"
 			default:  {
 				// 如果是TempProperty则需要添加p.前缀

@@ -5,6 +5,8 @@ import net.mydreamy.requirementmodel.rEMODEL.PrimitiveTypeCS
 import net.mydreamy.requirementmodel.rEMODEL.EnumEntity
 import net.mydreamy.requirementmodel.rEMODEL.EntityType
 import net.mydreamy.requirementmodel.rEMODEL.TypeCS
+import org.eclipse.emf.ecore.resource.Resource
+import java.util.ArrayList
 
 class Tool {
 	

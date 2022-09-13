@@ -14,6 +14,7 @@ import net.mydreamy.requirementmodel.rEMODEL.Contract
 import net.mydreamy.requirementmodel.rEMODEL.Service
 import java.util.HashMap
 import com.rm2pt.generator.golangclassgenerate.serviceGen.ServiceGenerator
+import com.rm2pt.generator.golangclassgenerate.serviceGen.OperationDomain
 
 class CodeGenerator extends AbstractGenerator {
 
@@ -35,12 +36,21 @@ class CodeGenerator extends AbstractGenerator {
 			fsa.generateFile("Auto/entity/" + e.entityName.initialLow + ".go", EntityGenerator.generate(e));
 		}
 		fsa.generateFile("Auto/entity/init.go", EntityGenerator.generateInit(zEntities))
+		
+		var services = new ArrayList<Service>();
+		var its = resource.allContents.toIterable.filter(typeof(Service));
+		for(e : its){
+			System.out.println(e);
+			services.add(e);
+		}
+		var operationDomain = new OperationDomain(services);
+		
 		var contractMap = new HashMap<String, Contract>();
 		for(contract : resource.allContents.toIterable.filter(typeof(Contract))){
 	 		contractMap.put(contract.op.name, contract);
 		}
-		for(service : resource.allContents.toIterable.filter(typeof(Service))){
-			var serviceGen = new ServiceGenerator(service, contractMap)
+		for(service : services){
+			var serviceGen = new ServiceGenerator(service, contractMap, operationDomain)
 	 		fsa.generateFile("Auto/serviceGen/" + service.name + ".go", serviceGen.generate());	
 		}
 		

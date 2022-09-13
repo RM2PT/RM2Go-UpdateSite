@@ -17,7 +17,7 @@ class ServiceGenerator {
 	
 	List<ContractGenerator> contractGens = new ArrayList<ContractGenerator>();
 	
-	new (Service service, Map<String, Contract> contractMap){
+	new (Service service, Map<String, Contract> contractMap, OperationDomain operationDomain){
 		this.service = service;	
 		
 		
@@ -27,7 +27,7 @@ class ServiceGenerator {
 		}
 		
 		for(op : service.operation){
-			contractGens.add(new ContractGenerator(contractMap.get(op.name), this))
+			contractGens.add(new ContractGenerator(contractMap.get(op.name), this, operationDomain))
 		}
 	}
 	
@@ -49,6 +49,7 @@ class ServiceGenerator {
 				"Auto/entity"
 				"Auto/entityRepo"
 				"time"
+				"Auto/util"
 			)
 			
 			var «service.name»Instance «service.name»
