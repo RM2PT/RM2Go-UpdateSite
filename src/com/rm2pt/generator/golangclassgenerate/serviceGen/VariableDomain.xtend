@@ -19,17 +19,3 @@ class VariableDomain {
 		add(vari.name, vari.type)
 	}
 }
-class OperationDomain {
-	// first String is contract name , second is service name
-	Map<String, String> variableMap = new HashMap<String ,String>();
-	def findService(String operationName){
-		return variableMap.get(operationName);
-	}
-	new (Collection<Service> services){
-		for(service : services){
-			for(operation : service.operation){
-				variableMap.put(operation.name, service.name)
-			}		
-		}
-	}
-}

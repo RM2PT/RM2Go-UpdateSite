@@ -41,6 +41,7 @@ import net.mydreamy.requirementmodel.rEMODEL.OCLExpressionCS
 import com.rm2pt.generator.golangclassgenerate.Tool
 import net.mydreamy.requirementmodel.rEMODEL.EnumLiteralExpCS
 import net.mydreamy.requirementmodel.rEMODEL.OperationCallExpCS
+import net.mydreamy.requirementmodel.rEMODEL.PrimitiveTypeCS
 
 class ContractGenerator {
 	Contract contract;
@@ -52,6 +53,11 @@ class ContractGenerator {
 		serviceGen = service;
 		this.operationDomain = operationDomain;
 		variables = new VariableDomain();
+		if(contract.op.parameter !== null){
+			for(vari : contract.op.parameter){
+				variables.add(vari.name, vari.type)
+			}
+		}
 		if(contract.def !== null){
 			for(vari : contract.def.variable){
 				variables.add(vari)
@@ -158,23 +164,24 @@ class ContractGenerator {
 					// oclisnew
 					// isequal	
 				}else if(exp.infixop.equals("=")){
+					var value = "";
+					if(exp.exp === null){
+						value = generateValue(exp.rightside)
+					}else{
+						value = generateValue(exp.rightside, exp.op, exp.exp)
+					}
 					switch(left : exp.leftside){
 						// item.barcode
 						PropertyCallExpCS:{
 							if(!left.name.symbol.equals("self")){
-								var rightTotal = generateValue(exp.rightside);
-								if(exp.op !== null){
-									rightTotal += exp.op + generateValue(exp.exp);
-								}
-								'''«generateValue(left.name)».Set«left.attribute»(«rightTotal»)'''
+								'''«generateValue(left.name)».Set«left.attribute»(«value»)'''
 							}else{
-								'''«generateValue(left.attribute)» = «generateValue(exp.rightside)»'''
+								'''«generateValue(left.attribute)» = «value»'''
 							}
-							
 						}
 						// currentsale
 						default: {
-							'''«generateValue(left)» = «generateValue(exp.rightside)»'''
+							'''«generateValue(left)» = «generateValue(value)»'''
 						}
 					}
 				}else {
@@ -256,7 +263,13 @@ class ContractGenerator {
 						case "=" : "=="
 						default: exp.infixop
 					}
-					'''«generateValue(exp.leftside)» «op» «generateValue(exp.rightside)»'''
+					var value = "";
+					if(exp.exp === null){
+						value = generateValue(exp.rightside)
+					}else{
+						value = generateValue(exp.rightside, exp.op, exp.exp)
+					}
+					'''«generateValue(exp.leftside)» «op» «value»'''
 				}
 			}
 			VariableExpCS : generateValue(exp.symbol)
@@ -365,7 +378,41 @@ class ContractGenerator {
 	def String generateDeclaration(VariableDeclarationCS dec){
 		'''var «dec.name» «generateType(dec.type)» «IF dec.initExpression!==null» = «generateValue(dec.initExpression)»«ENDIF»'''	
 	}
-
+	
+	def String generateValue(RightSubAtomicExpression left, String op, AtomicExpression exp){
+		System.out.println("in generateValue 2 param")
+		
+		var leftType = findExpType(left);
+		var rightType = findExpType(exp);
+		System.out.println("leftType is" + leftType +" and rightType is" + rightType)
+		if(leftType instanceof PrimitiveTypeCS && rightType instanceof PrimitiveTypeCS){
+			System.out.println("leftType and rightType all PrimitiveTypeCS")
+			var lname = (leftType as PrimitiveTypeCS).name;
+			var rname = (rightType as PrimitiveTypeCS).name;
+			if(lname.equals("Real") && rname.equals("Integer")){
+				return '''«generateValue(left)» «op» float64(«generateValue(exp)»)'''
+			}else if(rname.equals("Real") && lname.equals("Integer")){
+				return '''float64(«generateValue(left)») «op» «generateValue(exp)»'''
+			}
+		}
+		return '''«generateValue(left)» «op» «generateValue(exp)»'''
+	}
+	
+	def TypeCS findExpType(EObject exp){
+		switch(exp){
+			AtomicExpression : {
+				if(exp.infixop === null){
+					findExpType(exp.leftside)
+				}
+			}
+			PropertyCallExpCS: {
+				switch(father :findVariableType(exp.name.symbol) ){
+					EntityType: return findAttributeType(father, exp.attribute)
+				}
+			}
+			VariableExpCS: findVariableType(exp.symbol)
+		}
+	}
 	def TypeCS findVariableType(String symbol){
 		if(variables.findType(symbol) !== null){
 			return variables.findType(symbol)
