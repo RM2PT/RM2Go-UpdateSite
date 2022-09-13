@@ -42,17 +42,21 @@ import com.rm2pt.generator.golangclassgenerate.Tool
 import net.mydreamy.requirementmodel.rEMODEL.EnumLiteralExpCS
 import net.mydreamy.requirementmodel.rEMODEL.OperationCallExpCS
 import net.mydreamy.requirementmodel.rEMODEL.PrimitiveTypeCS
+import java.util.Set
 
 class ContractGenerator {
 	Contract contract;
 	ServiceGenerator serviceGen;
 	VariableDomain variables;
 	OperationDomain operationDomain;
-	new (Contract contract, ServiceGenerator service, OperationDomain operationDomain){
+	Set<String> importSet;
+	new (Contract contract, ServiceGenerator service, OperationDomain operationDomain, Set<String> importSet){
 		this.contract = contract;
 		serviceGen = service;
 		this.operationDomain = operationDomain;
 		variables = new VariableDomain();
+		// 向importSet中添加本contract需要的import语句
+		this.importSet = importSet;
 		if(contract.op.parameter !== null){
 			for(vari : contract.op.parameter){
 				variables.add(vari.name, vari.type)
@@ -75,22 +79,42 @@ class ContractGenerator {
 	}
 	
 	def generate(){
-		'''
-		func (p *«serviceGen.name») «name» («FOR para : contract.op.parameter SEPARATOR ','»«para.name» «generateType(para.type)» «ENDFOR») (ret OperationResult[«generateType(contract.op.returnType)»]){
-			defer func() {
-				if err := entityRepo.Saver.Save(); err != nil {
-					ret.Err = NewErrPostCondition(err)
-					return
-				}
-			}()
-			
-			«generateDefinition()»
-			«generatePrecondition()»
-			«generatePostcondition()»
-			
-			return
+		if(serviceGen.isSystemLevel()){
+			'''
+			func «name» («FOR para : contract.op.parameter SEPARATOR ','»«para.name» «generateType(para.type)» «ENDFOR») (ret OperationResult[«generateType(contract.op.returnType)»]){
+				defer func() {
+					if err := entityRepo.Saver.Save(); err != nil {
+						ret.Err = NewErrPostCondition(err)
+						return
+					}
+				}()
+				
+				«generateDefinition()»
+				«generatePrecondition()»
+				«generatePostcondition()»
+				
+				return
+			}
+			'''
+		}else{
+			'''
+			func (p *«serviceGen.name») «name» («FOR para : contract.op.parameter SEPARATOR ','»«para.name» «generateType(para.type)» «ENDFOR») (ret OperationResult[«generateType(contract.op.returnType)»]){
+				defer func() {
+					if err := entityRepo.Saver.Save(); err != nil {
+						ret.Err = NewErrPostCondition(err)
+						return
+					}
+				}()
+				
+				«generateDefinition()»
+				«generatePrecondition()»
+				«generatePostcondition()»
+				
+				return
+			}
+			'''
 		}
-		'''
+		
 	}
 	def generateDefinition(){
 		if(contract.def === null){
@@ -203,6 +227,7 @@ class ContractGenerator {
 					default : "goenUndefined!"
 				}
 			}
+			
 			StandardNavigationCallExpCS : {
 				if(exp.propertycall !== null && exp.classifercall === null){
 					var property = exp.propertycall
@@ -279,7 +304,10 @@ class ContractGenerator {
 			StandardOperationExpCS :{
 				switch(exp.predefinedop.name){
 					case "oclIsUndefined()" : '''(«generateValue(exp.object)» == nil)'''
-					case "sum()" : '''util.Sum(«generateValue(exp.object)»)'''
+					case "sum()" : {
+						importSet.add("\"Auto/util\"")
+						'''util.Sum(«generateValue(exp.object)»)'''
+					}
 					default : "goenUndefined!"
 				}
 			}
@@ -293,6 +321,14 @@ class ContractGenerator {
 					}
 				}else {
 					"goenUndefined!"
+				}
+			}
+			ClassiferCallExpCS: {
+				System.out.println("is classifer!!!!!!!!!!!")
+				if(exp.op.equals("allInstance()")){
+					'''«generateRepo(exp.entity)».GetAll()'''
+				}else{
+					"goenUndefined"
 				}
 			}
 			OperationCallExpCS: {
@@ -346,6 +382,7 @@ class ContractGenerator {
 							var type = exp.varibles.get(0).type as EntityType
 							System.out.println("attribute : "+ attribute)
 							System.out.println("type: " + type)
+							importSet.add("\"Auto/util\"")
 							'''util.Collect(«generateValue(exp.simpleCall)», func(«FOR vari : exp.varibles»«generateFuncParam(vari)»«ENDFOR») «generateType(findAttributeType(type, attribute))» {return «generateValue(exp.exp)»} )'''
 						}
 						
@@ -361,10 +398,13 @@ class ContractGenerator {
 		switch(symbol){
 			case "self" : ""
 			case "result" : "ret.Value"
-			case "Now" : "time.Now()"
+			case "Now" : {
+				importSet.add("\"time\"")
+				"time.Now()"	
+			}
 			default:  {
 				// 如果是TempProperty则需要添加p.前缀
-				if(serviceGen.tempProperties.findType(symbol) !== null){
+				if(serviceGen.tempProperties.findType(symbol) !== null && !serviceGen.isSystemLevel()){
 					"p." + symbol
 				}else{
 					symbol
@@ -434,20 +474,29 @@ class ContractGenerator {
 	
 	def String generateType(TypeCS type){
 		switch(type){
-			EntityType: "entity." + Tool.compileGoTypeName(type)
+			EntityType: {
+				importSet.add("\"Auto/entity\"")
+				"entity." + Tool.compileGoTypeName(type)
+			}
 			CollectionTypeCS : {
 				switch(type.name.name){
 					case "Set":	"[]" + generateType(type.type)
 					default : "goenUndefined"
 				}
 			}
-			default : Tool.compileGoTypeName(type)
+			default : {
+				var ret = Tool.compileGoTypeName(type)
+				if(ret.equals("time.Time")){
+					importSet.add("\"time\"")
+				}
+				return ret
+			}
 		}
 	}
 	
 	def generateRepo(TypeCS type){
 		switch(type){
-			EntityType : "entity." + Tool.compileGoTypeName(type) + "Repo"
+			EntityType :  "entity." + Tool.compileGoTypeName(type) + "Repo"
 			default : "goenUndefined"
 		}
 	}

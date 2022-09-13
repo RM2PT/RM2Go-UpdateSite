@@ -14,8 +14,9 @@ import com.rm2pt.generator.golangclassgenerate.Tool
 
 class ServiceGenerator {
 	Service service;
-	
+	Set<String> importSet = new HashSet<String>();
 	List<ContractGenerator> contractGens = new ArrayList<ContractGenerator>();
+	
 	
 	new (Service service, Map<String, Contract> contractMap, OperationDomain operationDomain){
 		this.service = service;	
@@ -27,7 +28,7 @@ class ServiceGenerator {
 		}
 		
 		for(op : service.operation){
-			contractGens.add(new ContractGenerator(contractMap.get(op.name), this, operationDomain))
+			contractGens.add(new ContractGenerator(contractMap.get(op.name), this, operationDomain, importSet))
 		}
 	}
 	
@@ -41,35 +42,39 @@ class ServiceGenerator {
 	VariableDomain tempProperties = new VariableDomain();
 	
 	def generate(){
-		if(service.name.matches(".*System")){
+		var contracts = 
+			'''
+			«FOR gen : contractGens»
+			«gen.generate()»
+			«ENDFOR»
+			'''
+		if(isSystemLevel()){
 			'''
 			package serviceGen
 			
 			import (
-				"Auto/entity"
 				"Auto/entityRepo"
-				"time"
-				"Auto/util"
+				«FOR importStatement : importSet»
+				«importStatement»
+				«ENDFOR»
 			)
 			
-			var «service.name»Instance «service.name»
 			
 			«FOR attr : service.temp_property»
 			var «attr.name»  entity.«Tool.compileGoTypeName(attr.type)»
 			«ENDFOR»
 			
-«««			«FOR op : service.operation»
-«««			«ContractGenerator.generateSystem(contractMap.get(op.name))»
-«««			«ENDFOR»
+			«contracts»
 			'''
 		}else{
 			'''
 			package serviceGen
 			
 			import (
-				"Auto/entity"
 				"Auto/entityRepo"
-				"time"
+				«FOR importStatement : importSet»
+				«importStatement»
+				«ENDFOR»
 			)
 			
 			var «service.name»Instance «service.name»
@@ -80,11 +85,12 @@ class ServiceGenerator {
 				«ENDFOR»
 			}
 			
-			«FOR gen : contractGens»
-			«gen.generate()»
-			«ENDFOR»
+			«contracts»
 			'''
 		}
 		
+	}
+	def isSystemLevel(){
+		return service.name.matches(".*System")
 	}
 }
