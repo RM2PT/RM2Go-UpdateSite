@@ -53,7 +53,7 @@ class ServiceGenerator {
 			package serviceGen
 			
 			import (
-				"Auto/entityRepo"
+				"Cocome/entityRepo"
 				«FOR importStatement : importSet»
 				«importStatement»
 				«ENDFOR»
@@ -71,7 +71,7 @@ class ServiceGenerator {
 			package serviceGen
 			
 			import (
-				"Auto/entityRepo"
+				"Cocome/entityRepo"
 				«FOR importStatement : importSet»
 				«importStatement»
 				«ENDFOR»

@@ -45,7 +45,7 @@ class EntityGenerator {
 		package entity
 		
 		import (
-			"Auto/entityRepo"
+			"Cocome/entityRepo"
 			"log"
 		)
 		
@@ -103,7 +103,7 @@ class EntityGenerator {
 		return
 		'''
 		import(
-		"Auto/entityRepo"
+		"Cocome/entityRepo"
 		«FOR i : imports»
 		«i»
 		«ENDFOR»

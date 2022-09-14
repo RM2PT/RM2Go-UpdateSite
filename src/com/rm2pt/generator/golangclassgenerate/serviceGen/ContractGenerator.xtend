@@ -305,7 +305,7 @@ class ContractGenerator {
 				switch(exp.predefinedop.name){
 					case "oclIsUndefined()" : '''(«generateValue(exp.object)» == nil)'''
 					case "sum()" : {
-						importSet.add("\"Auto/util\"")
+						importSet.add("\"Cocome/util\"")
 						'''util.Sum(«generateValue(exp.object)»)'''
 					}
 					default : "goenUndefined!"
@@ -382,7 +382,7 @@ class ContractGenerator {
 							var type = exp.varibles.get(0).type as EntityType
 							System.out.println("attribute : "+ attribute)
 							System.out.println("type: " + type)
-							importSet.add("\"Auto/util\"")
+							importSet.add("\"Cocome/util\"")
 							'''util.Collect(«generateValue(exp.simpleCall)», func(«FOR vari : exp.varibles»«generateFuncParam(vari)»«ENDFOR») «generateType(findAttributeType(type, attribute))» {return «generateValue(exp.exp)»} )'''
 						}
 						
@@ -475,7 +475,7 @@ class ContractGenerator {
 	def String generateType(TypeCS type){
 		switch(type){
 			EntityType: {
-				importSet.add("\"Auto/entity\"")
+				importSet.add("\"Cocome/entity\"")
 				"entity." + Tool.compileGoTypeName(type)
 			}
 			CollectionTypeCS : {
