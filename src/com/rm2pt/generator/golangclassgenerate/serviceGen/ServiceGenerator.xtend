@@ -59,6 +59,9 @@ class ServiceGenerator {
 				«ENDFOR»
 			)
 			
+			var «service.name»Instance «service.name»
+						
+			type «service.name» int
 			
 			«FOR attr : service.temp_property»
 			var «attr.name»  entity.«Tool.compileGoTypeName(attr.type)»

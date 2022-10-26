@@ -25,9 +25,27 @@ class Tool {
 	  }
 	  return sb.toString();
 	}
+	static def camelToDivider(String line){
+		if(line===null||"".equals(line)){
+		   return "";
+	  }
+	  var line2 = String.valueOf(line.charAt(0)).toUpperCase().concat(line.substring(1));
+	  var sb=new StringBuffer();
+	  var pattern=Pattern.compile("[A-Z]([a-z\\d]+)?");
+	  var matcher=pattern.matcher(line2);
+	  while(matcher.find()){
+	   var word=matcher.group();
+	   sb.append(word.toLowerCase());
+	   sb.append(matcher.end()==line2.length()?"":"-");
+	  }
+	  return sb.toString();
+	}
 	
-	static def initialLowerCase(String name) {
+	static def firstLowerCase(String name) {
 		name.toLowerCase().substring(0,1) + name.substring(1)
+	}
+	static def firstUpperCase(String name){
+		name.toUpperCase().substring(0,1) + name.substring(1)
 	}
 	
 	static def compileGoTypeName(TypeCS type)
@@ -138,6 +156,7 @@ class Tool {
 				default: null
 		}			
 	}
+	
 	static def compileSqlTypeName(String typeName) 
 	{	
 		switch typeName {

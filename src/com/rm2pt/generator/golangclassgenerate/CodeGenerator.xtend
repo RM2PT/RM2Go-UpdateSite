@@ -15,9 +15,12 @@ import net.mydreamy.requirementmodel.rEMODEL.Service
 import java.util.HashMap
 import com.rm2pt.generator.golangclassgenerate.serviceGen.ServiceGenerator
 import com.rm2pt.generator.golangclassgenerate.serviceGen.OperationDomain
+import java.util.TreeMap
+import java.util.List
 
 class CodeGenerator extends AbstractGenerator {
 
+	
 	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
 		System.out.println("hello, goen!!!");
 		var entities = new ArrayList<Entity>();
@@ -53,8 +56,15 @@ class CodeGenerator extends AbstractGenerator {
 			var serviceGen = new ServiceGenerator(service, contractMap, operationDomain)
 	 		fsa.generateFile("Auto/serviceGen/" + service.name + ".go", serviceGen.generate());	
 		}
-		
-		
+		var serviceContractMap = new HashMap<Service, List<Contract>>();
+		for(contract : resource.allContents.toIterable.filter(typeof(Contract))){
+	 		if(!serviceContractMap.containsKey(contract.service)){
+	 			serviceContractMap.put(contract.service, new ArrayList());
+	 		}
+	 		serviceContractMap.get(contract.service).add(contract);
+		}
+		fsa.generateFile("Auto/serviceGen/server.go", new ApiGenerator(serviceContractMap).generate());	
+//		
 		
 	}
 

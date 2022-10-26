@@ -17,7 +17,7 @@ class ZName {
 	new(String originName) {
 		this.originName = originName;
 		underline = Tool.camelToUnderScore(originName);
-		initialLow = Tool.initialLowerCase(originName);
+		initialLow = Tool.firstLowerCase(originName);
 	}
 }
 
@@ -87,7 +87,7 @@ class ZMultiAss{
 	}
 }
 
-class ZEntity {
+class ZEntity  {
 	public ZName entityName;
 	public List<ZBasicField> basicFields = new ArrayList<ZBasicField>();
 	public List<ZEnumField>  enumFields = new ArrayList<ZEnumField>();

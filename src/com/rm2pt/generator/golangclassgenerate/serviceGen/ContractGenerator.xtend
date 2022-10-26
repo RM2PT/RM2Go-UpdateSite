@@ -79,24 +79,24 @@ class ContractGenerator {
 	}
 	
 	def generate(){
-		if(serviceGen.isSystemLevel()){
-			'''
-			func «name» («FOR para : contract.op.parameter SEPARATOR ','»«para.name» «generateType(para.type)» «ENDFOR») (ret OperationResult[«generateType(contract.op.returnType)»]){
-				defer func() {
-					if err := entityRepo.Saver.Save(); err != nil {
-						ret.Err = NewErrPostCondition(err)
-						return
-					}
-				}()
-				
-				«generateDefinition()»
-				«generatePrecondition()»
-				«generatePostcondition()»
-				
-				return
-			}
-			'''
-		}else{
+//		if(serviceGen.isSystemLevel()){
+//			'''
+//			func «name» («FOR para : contract.op.parameter SEPARATOR ','»«para.name» «generateType(para.type)» «ENDFOR») (ret OperationResult[«generateType(contract.op.returnType)»]){
+//				defer func() {
+//					if err := entityRepo.Saver.Save(); err != nil {
+//						ret.Err = NewErrPostCondition(err)
+//						return
+//					}
+//				}()
+//				
+//				«generateDefinition()»
+//				«generatePrecondition()»
+//				«generatePostcondition()»
+//				
+//				return
+//			}
+//			'''
+//		}else{
 			'''
 			func (p *«serviceGen.name») «name» («FOR para : contract.op.parameter SEPARATOR ','»«para.name» «generateType(para.type)» «ENDFOR») (ret OperationResult[«generateType(contract.op.returnType)»]){
 				defer func() {
@@ -113,7 +113,7 @@ class ContractGenerator {
 				return
 			}
 			'''
-		}
+//		}
 		
 	}
 	def generateDefinition(){
