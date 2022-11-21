@@ -190,27 +190,32 @@ class EntityGenerator {
 			strList.add(
 			'''
 			p.«a.member.originName» = «a.member.initialLow» 
-			p.AddBasicFieldChange("«a.member.underline»")''')
+			p.AddBasicFieldChange("«a.member.underline»")
+			«e.entityName.initialLow»Repo.AddInQueue(p)''')
 		}
 		for(a : e.enumFields){
 			strList.add('''
 			p.«a.member.originName» = «a.member.initialLow» 
-			p.AddBasicFieldChange("«a.member.underline»")''')
+			p.AddBasicFieldChange("«a.member.underline»")
+			«e.entityName.initialLow»Repo.AddInQueue(p)''')
 		}
 		for(a : e.singleAsses){
 			strList.add(
 			'''
 			id := «a.targetEntity.initialLow»Repo.GetGoenId(«a.targetEntity.initialLow»)
 			p.«a.field.originName» = &id
-			p.AddAssFieldChange("«a.field.underline»")''')
+			p.AddAssFieldChange("«a.field.underline»")
+			«e.entityName.initialLow»Repo.AddInQueue(p)''')
 		}
 		for(a : e.multiAsses){
 			strList.add(
 			'''
-			p.AddMultiAssChange(entityRepo.Include, "«a.tableName»", «a.targetEntity.initialLow»Repo.GetGoenId(«a.targetEntity.initialLow»))''')
+			p.AddMultiAssChange(entityRepo.Include, "«a.tableName»", «a.targetEntity.initialLow»Repo.GetGoenId(«a.targetEntity.initialLow»))
+			«e.entityName.initialLow»Repo.AddInQueue(p)''')
 			strList.add(
 			'''
-			p.AddMultiAssChange(entityRepo.Exclude, "«a.tableName»", «a.targetEntity.initialLow»Repo.GetGoenId(«a.targetEntity.initialLow»))''')
+			p.AddMultiAssChange(entityRepo.Exclude, "«a.tableName»", «a.targetEntity.initialLow»Repo.GetGoenId(«a.targetEntity.initialLow»))
+			«e.entityName.initialLow»Repo.AddInQueue(p)''')
 		
 		}
 		return strList;
